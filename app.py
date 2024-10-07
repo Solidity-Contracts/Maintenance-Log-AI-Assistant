@@ -5,8 +5,9 @@ from web3 import Web3
 from openai import OpenAI
 import json
 
-# Set up OpenAI API Key from environment variable
-client = OpenAI(api_key="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")
+# Access the API key from the environment variable
+api_key = os.getenv("OPENAI_API_KEY")  # This will retrieve the API key
+client = OpenAI(api_key=api_key)
 
 # Set up Web3 connection to Sepolia using Infura
 infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
