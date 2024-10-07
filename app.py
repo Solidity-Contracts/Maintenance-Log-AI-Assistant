@@ -1,4 +1,3 @@
-
 import os
 import streamlit as st
 from web3 import Web3
@@ -6,7 +5,7 @@ from openai import OpenAI
 import json
 
 # Access the API key from the environment variable
-api_key = os.getenv("OPENAI_API_KEY")  # This will retrieve the API key
+api_key = os.environ.get("OPENAI_API_KEY")  # This will retrieve the API key
 client = OpenAI(api_key=api_key)
 
 # Set up Web3 connection to Sepolia using Infura
