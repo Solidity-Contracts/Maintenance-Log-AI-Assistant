@@ -76,4 +76,49 @@ def get_maintenance_logs(machine_id):
 
 def ask_ai_assistant(question, logs, machine_id):
     if not logs or all(log['timestamp'] == 0 for log in logs):
-        return "The maintenance logs
+        return "The maintenance logs for this machine ID are incomplete or invalid. Please check the machine ID or update the logs."
+
+    logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Description: {log['description']}" for log in logs])
+    messages = [
+        {"role": "system", "content": "You are an AI assistant that helps with maintenance logs."},
+        {"role": "user", "content": f"Here are the maintenance logs for machine ID {machine_id}:\n{logs_summary}\n\n{question}"}
+    ]
+
+    response = client.chat_completions.create(
+        model="gpt-4",
+        messages=messages
+    )
+
+    return response.choices[0].message.content
+
+
+# Streamlit interface
+st.title("Maintenance Logs AI Assistant")
+
+machine_id_input = st.text_input("Enter machine ID:", "")
+if machine_id_input:
+    try:
+        machine_id = int(machine_id_input)
+        
+        # Button to retrieve logs
+        if st.button("Show Maintenance Logs"):
+            logs = get_maintenance_logs(machine_id)
+            if logs:
+                st.success(f"Maintenance logs found for machine ID: {machine_id}")
+                st.write("Logs:")
+                for log in logs:
+                    st.write(f"Timestamp: {log['timestamp']}, Description: {log['description']}")
+            else:
+                st.warning("No logs found for this machine ID.")
+
+        # Section for asking AI questions
+        user_question = st.text_input("Ask the AI assistant a question about the logs:")
+        if st.button("Ask AI"):
+            if logs:
+                ai_response = ask_ai_assistant(user_question, logs, machine_id)
+                st.write(f"AI Response: {ai_response}")
+            else:
+                st.warning("Please retrieve the logs first before asking a question.")
+
+    except ValueError:
+        st.error("Invalid machine ID. Please enter a numeric value.")
