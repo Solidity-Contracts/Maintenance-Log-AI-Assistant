@@ -74,33 +74,6 @@ def get_maintenance_logs(machine_id):
     formatted_logs = [{"machineId": log[0], "timestamp": log[1], "description": log[2]} for log in logs]
     return formatted_logs
 
-# Streamlit interface
-st.title("Maintenance Logs AI Assistant")
-
-machine_id_input = st.text_input("Enter machine ID:", "")
-if machine_id_input:
-    try:
-        machine_id = int(machine_id_input)
-        logs = get_maintenance_logs(machine_id)
-        
-        if logs:
-            st.success(f"Maintenance logs found for machine ID: {machine_id}")
-            
-            # Input fields for timestamp range
-            start_timestamp = st.number_input("Start Timestamp:", value=0, min_value=0)
-            end_timestamp = st.number_input("End Timestamp:", value=9999999999, min_value=0)
-            
-            if st.button("Show Logs"):
-                filtered_logs = [log for log in logs if start_timestamp <= log['timestamp'] <= end_timestamp]
-                if filtered_logs:
-                    st.write(f"Logs from {start_timestamp} to {end_timestamp}:")
-                    for log in filtered_logs:
-                        st.write(f"Timestamp: {log['timestamp']}, Description: {log['description']}")
-                else:
-                    st.write("No logs found in the specified range.")
-        else:
-            st.warning("No logs found for this machine ID.")
-
-    except ValueError:
-        st.error("Invalid machine ID. Please enter a numeric value.")
-
+def ask_ai_assistant(question, logs, machine_id):
+    if not logs or all(log['timestamp'] == 0 for log in logs):
+        return "The maintenance logs
