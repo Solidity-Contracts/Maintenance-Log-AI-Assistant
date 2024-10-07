@@ -96,6 +96,8 @@ def ask_ai_assistant(question, logs, machine_id):
 st.title("Maintenance Logs AI Assistant")
 
 machine_id_input = st.text_input("Enter machine ID:", "")
+logs = None  # Initialize logs to None
+
 if machine_id_input:
     try:
         machine_id = int(machine_id_input)
