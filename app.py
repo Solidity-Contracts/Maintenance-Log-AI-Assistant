@@ -11,7 +11,7 @@ import json
 
 
 if "OPENAI_API_KEY" in st.secrets:
-    api_key = st.secrets["OPENAI_API_KEY"]
+    api_key = st.secrets("OPENAI_API_KEY")
 else:
     st.error("API key is not set. Please check your secrets.toml file.")
 
