@@ -2,12 +2,14 @@ import os
 import streamlit as st
 from web3 import Web3
 from openai import OpenAI
-from dotenv import load_dotenv,dotenv_values
+#from dotenv import load_dotenv,dotenv_values
 import json
 
-load_dotenv()
+#load_dotenv()
 
-api_key=os.getenv("OPENAI_API_KEY")
+from config import OPENAI_API_KEY
+
+api_key=OPENAI_API_KEY
 if api_key:
     st.success("API Key loaded successfully!")
 else:
