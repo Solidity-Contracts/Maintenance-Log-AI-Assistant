@@ -8,7 +8,7 @@ import json
 load_dotenv()
 
 # Access the API key from the environment variable
-api_key=os.getenv("OPENAI_API_KEY"
+api_key=os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 # Set up Web3 connection to Sepolia using Infura
