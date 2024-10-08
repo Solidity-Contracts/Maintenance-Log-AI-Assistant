@@ -1,11 +1,11 @@
 import os
 import streamlit as st
 from web3 import Web3
-from openai import OpenAI
+import openai  # Make sure to import the openai module
 import json
 
 # Access the API key from the environment variable
-client = OpenAI(api_key="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")
+client = openai.OpenAI(api_key="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")
 
 # Set up Web3 connection to Sepolia using Infura
 infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
@@ -120,14 +120,4 @@ if machine_id_input:
         if user_question:
             st.write("Asking AI assistant...")  # Debugging message
             print("Logs retrieved:", logs)  # Debugging message
-            response = ask_ai_assistant(user_question, logs, machine_id)
-            if response:
-                st.write("Response from AI:", response)
-            else:
-                st.warning("No response from AI assistant.")
-
-        # Option to view logs
-        if st.button("View Logs"):
-            st.write("Here are the maintenance logs:")
-            for log in logs:
-                st.write(f"Machine ID: {log['machineId']}, Timestamp: {log['timestamp']}, Description: {log['description']}")
+            response = ask_ai_assista
