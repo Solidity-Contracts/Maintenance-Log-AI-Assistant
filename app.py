@@ -12,7 +12,7 @@ import json
 print (OPENAI_API_KEY)
 # Access the API key from the environment variable
 #client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-client = OpenAI(api_key=st.secrets.["OPENAI_API_KEY"])
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
 if OPENAI_API_KEY:
