@@ -11,17 +11,19 @@ import json
 
 
 # Access the API key from the secrets
-api_key = st.secrets["OPENAI_API_KEY"]
+#api_key = st.secrets["OPENAI_API_KEY"]
 
-if api_key:
-    st.success("API Key loaded successfully!")
-    client = OpenAI(api_key=api_key)
-else:
-    st.error("API key is not set. Please check your secrets.toml file.")
+#if api_key:
+  #  st.success("API Key loaded successfully!")
+   # client = OpenAI(api_key=api_key)
+#else:
+    #st.error("API key is not set. Please check your secrets.toml file.")
 
 
 # Access the API key from the environment variable
 #client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+client = OpenAI(api_key="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")
 
 
 
