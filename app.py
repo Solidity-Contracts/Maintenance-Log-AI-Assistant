@@ -93,7 +93,7 @@ contract_address = "0x0FF924e6147b22B97d1ca2B84F5e0c90D40dd52e"
 # Create contract instance
 contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
-ef ask_ai_assistant(question, logs, machine_id):
+def ask_ai_assistant(question, logs, machine_id):
     if not logs or all(log['timestamp'] == 0 for log in logs):
         return "The maintenance logs for this machine ID are incomplete or invalid. Please check the machine ID or update the logs."
 
