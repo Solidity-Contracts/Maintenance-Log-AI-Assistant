@@ -10,6 +10,12 @@ import json
 #from config import OPENAI_API_KEY
 
 
+if "OPENAI_API_KEY" in st.secrets:
+    api_key = st.secrets["OPENAI_API_KEY"]
+else:
+    st.error("API key is not set. Please check your secrets.toml file.")
+
+
 # Access the API key from the environment variable
 #client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
