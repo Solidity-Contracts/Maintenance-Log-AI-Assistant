@@ -126,6 +126,10 @@ st.title("Maintenance Log AI Assistant")
 # Input for Machine ID
 machine_id_input = st.text_input("Enter machine ID to retrieve logs:")
 
+# Date filter inputs
+start_date = st.date_input("Start Date:")
+end_date = st.date_input("End Date:")
+
 if machine_id_input:
     machine_id = int(machine_id_input)
 
@@ -135,16 +139,21 @@ if machine_id_input:
     if logs is None:
         st.warning("No logs found for this machine ID. Please enter a valid machine ID.")
     else:
+        # Filter logs by selected date range
+        filtered_logs = [
+            log for log in logs if start_date <= log['timestamp'] <= end_date
+        ]
+
         # Allow the user to ask questions
         user_question = st.text_input("Ask the AI assistant about the maintenance logs:")
 
         if user_question:
             # Ask AI assistant for response
-            response = ask_ai_assistant(user_question, logs, machine_id)
+            response = ask_ai_assistant(user_question, filtered_logs, machine_id)
             st.write(response)
 
         # Optional button to show logs
         if st.button("Show Logs"):
             st.write("Here are the maintenance logs:")
-            for log in logs:
+            for log in filtered_logs:
                 st.write(f"Machine ID: {log['machineId']}, Timestamp: {log['timestamp']}, Description: {log['description']}")
