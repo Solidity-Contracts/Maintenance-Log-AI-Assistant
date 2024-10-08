@@ -140,9 +140,15 @@ if machine_id_input:
         st.warning("No logs found for this machine ID. Please enter a valid machine ID.")
     else:
         # Filter logs by selected date range
-        filtered_logs = [
-            log for log in logs if start_date <= log['timestamp'] <= end_date
-        ]
+        filtered_logs = []
+        
+        for log in logs:
+            # Convert the timestamp to a datetime object
+            log_date = datetime.fromtimestamp(log['timestamp'])
+            
+            # Check if the log date is within the selected range
+            if start_date <= log_date <= end_date:
+                filtered_logs.append(log)
 
         # Allow the user to ask questions
         user_question = st.text_input("Ask the AI assistant about the maintenance logs:")
