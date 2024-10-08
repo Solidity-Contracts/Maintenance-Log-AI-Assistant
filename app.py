@@ -5,7 +5,7 @@ import json
 from openai import OpenAI
 
 # Set up OpenAI client
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="your API key")
 
 # Set up Web3 connection to Sepolia using Infura
 infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
