@@ -4,36 +4,8 @@ from web3 import Web3
 from openai import OpenAI
 import json
 
-#from dotenv import load_dotenv,dotenv_values
-#load_dotenv()
-
-#from config import OPENAI_API_KEY
-
-
-# Access the API key from the secrets
-#api_key = st.secrets["OPENAI_API_KEY"]
-
-#if api_key:
-  #  st.success("API Key loaded successfully!")
-   # client = OpenAI(api_key=api_key)
-#else:
-    #st.error("API key is not set. Please check your secrets.toml file.")
-
-
 # Access the API key from the environment variable
-#client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 client = OpenAI(api_key="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")
-
-
-
-#if OPENAI_API_KEY:
-    #st.success("API Key loaded successfully!")
-#else:
- #   st.error("API key is not set. Please check your .env file.")
-
-
-
 
 # Set up Web3 connection to Sepolia using Infura
 infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
@@ -106,6 +78,7 @@ def ask_ai_assistant(question, logs, machine_id):
 
     try:
         # Call the OpenAI API
+        print("Request to OpenAI:", messages)  # Debugging message
         response = client.chat.completions.create(
             model="gpt-4",
             messages=messages
@@ -141,13 +114,17 @@ if machine_id_input:
     else:
         # Show options to either ask questions or view logs
         st.write("What would you like to do?")
-        
+
         # Option to ask questions
         user_question = st.text_input("Ask the AI assistant about the maintenance logs:")
         if user_question:
-            # Ask AI assistant for response
+            st.write("Asking AI assistant...")  # Debugging message
+            print("Logs retrieved:", logs)  # Debugging message
             response = ask_ai_assistant(user_question, logs, machine_id)
-            st.write(response)
+            if response:
+                st.write("Response from AI:", response)
+            else:
+                st.warning("No response from AI assistant.")
 
         # Option to view logs
         if st.button("View Logs"):
