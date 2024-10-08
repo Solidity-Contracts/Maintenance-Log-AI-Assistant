@@ -93,7 +93,7 @@ contract_address = "0x0FF924e6147b22B97d1ca2B84F5e0c90D40dd52e"
 # Create contract instance
 contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
-def ask_ai_assistant(question, logs, machine_id):
+ef ask_ai_assistant(question, logs, machine_id):
     if not logs or all(log['timestamp'] == 0 for log in logs):
         return "The maintenance logs for this machine ID are incomplete or invalid. Please check the machine ID or update the logs."
 
@@ -104,13 +104,17 @@ def ask_ai_assistant(question, logs, machine_id):
         {"role": "user", "content": f"Here are the maintenance logs for machine ID {machine_id}:\n{logs_summary}\n\n{question}"}
     ]
 
-    # Call the OpenAI API
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=messages
-    )
-
-    return response.choices[0].message.content
+    try:
+        # Call the OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=messages
+        )
+        return response.choices[0].message.content
+    except openai.error.AuthenticationError:
+        return "Authentication error: Please check your OpenAI API key."
+    except Exception as e:
+        return f"An error occurred: {e}"
 
 def get_maintenance_logs(machine_id):
     logs = contract.functions.getMaintenanceLogs(machine_id).call()
