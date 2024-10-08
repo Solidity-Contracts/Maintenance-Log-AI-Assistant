@@ -5,11 +5,7 @@ import json
 import openai
 
 # Set your OpenAI API key here directly for testing
-openai.api_key = "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"
-
-# Set up Web3 connection to Sepolia using Infura
-infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
-web3 = Web3(Web3.HTTPProvider(infura_url))
+client = OpenAI(api_key= "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")
 
 # Set up Web3 connection to Sepolia using Infura
 infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
@@ -81,11 +77,10 @@ def ask_ai_assistant(question, logs, machine_id):
     ]
 
     # Call the OpenAI API
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=messages
     )
-
     return response.choices[0].message.content
 
 def get_maintenance_logs(machine_id):
@@ -111,17 +106,18 @@ if machine_id_input:
     if logs is None:
         st.warning("No logs found for this machine ID. Please enter a valid machine ID.")
     else:
-        # Allow the user to ask questions
+        # Show options to either ask questions or view logs
+        st.write("What would you like to do?")
+        
+        # Option to ask questions
         user_question = st.text_input("Ask the AI assistant about the maintenance logs:")
-
         if user_question:
             # Ask AI assistant for response
             response = ask_ai_assistant(user_question, logs, machine_id)
             st.write(response)
 
-        # Optional button to show logs
-        if st.button("Show Logs"):
+        # Option to view logs
+        if st.button("View Logs"):
             st.write("Here are the maintenance logs:")
             for log in logs:
                 st.write(f"Machine ID: {log['machineId']}, Timestamp: {log['timestamp']}, Description: {log['description']}")
-
