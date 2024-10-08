@@ -7,10 +7,9 @@ import json
 
 load_dotenv()
 
-
-api_key = os.getenv("OPENAI_API_KEY")
+api_key=os.getenv("OPENAI_API_KEY")
 if api_key:
-    print (api_key)
+    st.success("API Key loaded successfully!")
 else:
     st.error("API key is not set. Please check your .env file.")
 
