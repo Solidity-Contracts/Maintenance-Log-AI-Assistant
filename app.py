@@ -3,7 +3,7 @@ import json
 import streamlit as st
 from web3 import Web3
 from openai import OpenAI
-from dotenv import load_dotenv
+from dotenv import load_dotenv,dotenv_values
 
 # Load environment variables
 load_dotenv()
