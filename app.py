@@ -12,12 +12,12 @@ load_dotenv()
 #API_KEY =os.getenv("API_KEY")
 API_KEY = st.secrets["API_KEY"]
 
-client = OpenAI(api_key=API_KEY)
-if api_key is None:
+#client = OpenAI(api_key=API_KEY)
+if API_KEY is None:
     st.error("API key not found. Please check your .env file.")
 else:
     st.success("API key loaded successfully.")
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=API_KEY)
 
 # Set up Web3 connection to Sepolia using Infura
 infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
