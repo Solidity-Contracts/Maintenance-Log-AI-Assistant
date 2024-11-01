@@ -748,9 +748,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize OpenAI client
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
 # Sidebar
 with st.sidebar:
     st.header("About")
