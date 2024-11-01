@@ -5,7 +5,7 @@ from web3 import Web3
 from openai import OpenAI
 
 # Page configuration should be the first command
-st.set_page_config(page_title="AI Maintenance Tracker", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="AI Assistant for Medical Imaging Devices Maintenance Tracking", page_icon="🏥", layout="wide")
 
 # Access the OpenAI API key from the environment variable
 API_KEY = st.secrets["API_KEY"]
@@ -783,50 +783,56 @@ def get_maintenance_logs(device_id):
         })
     return formatted_logs
 
+# Input for Device ID
+device_id_input = st.text_input("Enter Device ID", value="", max_chars=10, placeholder="Type and press Enter...")
+
+# Check for device ID input
+if device_id_input:
+    try:
+        device_id = int(device_id_input)
+        st.session_state.device_id = device_id  # Store device ID in session state
+        st.session_state.logs = get_maintenance_logs(device_id)  # Fetch logs
+        
+        if st.session_state.logs is None:
+            st.error("No logs found for this device ID. Please enter a valid device ID.")
+        else:
+            st.success(f"Successfully retrieved logs for Device ID: {device_id}")
+
+    except ValueError:
+        st.error("Please enter a valid numeric Device ID.")
+
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Accept user input
-if prompt := st.chat_input("What would you like to know?"):
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+# Accept user questions only if a valid device ID is set
+if st.session_state.device_id is not None and st.session_state.logs is not None:
+    prompt = st.chat_input("What would you like to know about the maintenance logs?")
 
-    # Check for device ID question
-    device_id = None
-    try:
-        device_id = int(prompt)  # Assuming user enters device ID for logs
-    except ValueError:
-        pass  # If it's not a device ID, we'll handle that later
+    if prompt:
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-    # Retrieve logs if a valid device ID is provided
-    if device_id is not None:
-        logs = get_maintenance_logs(device_id)
-        if logs is None:
-            response = "No logs found for this device ID."
-        else:
-            # Prepare the context for AI
-            logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in logs])
-            messages = [
-                {"role": "system", "content": "You are an AI assistant for maintenance accountability and tracking."},
-                {"role": "user", "content": f"Maintenance logs for device ID {device_id}:\n{logs_summary}\n\n{prompt}"}
-            ]
+        # Prepare the context for AI
+        logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in st.session_state.logs])
+        messages = [
+            {"role": "system", "content": "You are an AI assistant for maintenance accountability and tracking."},
+            {"role": "user", "content": f"Maintenance logs for device ID {st.session_state.device_id}:\n{logs_summary}\n\n{prompt}"}
+        ]
 
-            # Call the OpenAI API
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=messages
-            )
-            response_content = response.choices[0].message.content
-    else:
-        response_content = "Please enter a valid device ID to retrieve logs."
+        # Call the OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages
+        )
+        response_content = response.choices[0].message.content
 
-    # Display assistant response in chat message container
-    with st.chat_message("assistant"):
-        st.markdown(response_content)
-    
-    # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": response_content})
+        # Display assistant response in chat message container
+        with st.chat_message("assistant"):
+            st.markdown(response_content)
+        
+        # Add assistant response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": response_content})
