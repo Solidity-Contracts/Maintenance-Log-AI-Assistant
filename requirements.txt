@@ -1,4 +1,4 @@
 openai
 web3
 streamlit
-python-dotenv
+
