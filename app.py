@@ -4,6 +4,9 @@ import streamlit as st
 from web3 import Web3
 from openai import OpenAI
 
+# Page configuration should be the first command
+st.set_page_config(page_title="AI Maintenance Tracker", page_icon="🤖", layout="wide")
+
 # Access the OpenAI API key from the environment variable
 API_KEY = st.secrets["API_KEY"]
 
@@ -724,9 +727,6 @@ stakeholder_registration_contract_address = "0x8D2aeF2822B7740545e729514522E11a4
 maintenance_contract = web3.eth.contract(address=maintenance_contract_address, abi=maintenance_contract_abi)
 device_registration_contract = web3.eth.contract(address=device_registration_contract_address, abi=device_registration_contract_abi)
 stakeholder_registration_contract = web3.eth.contract(address=stakeholder_registration_contract_address, abi=stakeholder_registration_contract_abi)
-
-# Page configuration
-st.set_page_config(page_title="AI Maintenance Tracker", page_icon="🤖", layout="wide")
 
 # Custom CSS for styling
 st.markdown("""
