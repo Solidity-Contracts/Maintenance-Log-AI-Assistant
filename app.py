@@ -10,7 +10,7 @@ load_dotenv()
 
 # Access the OpenAI API key from the environment variable
 #API_KEY =os.getenv("API_KEY")
-API_KEY = st.secrets("API_KEY")
+API_KEY = st.secrets["API_KEY"]
 
 client = OpenAI(api_key=API_KEY)
 if api_key is None:
