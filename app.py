@@ -5,7 +5,7 @@ from web3 import Web3
 from openai import OpenAI
 
 # Page configuration should be the first command
-st.set_page_config(page_title="AI Assistant for Medical Imaging Devices Maintenance Tracking", page_icon="🏥", layout="wide")
+st.set_page_config(page_title="AI Assistant for Medical Imaging Equipment Maintenance Tracking", page_icon="🏥", layout="wide")
 
 # Access the OpenAI API key from the environment variable
 API_KEY = st.secrets["API_KEY"]
@@ -754,16 +754,14 @@ with st.sidebar:
     st.write("This is an AI-powered chatbot for maintenance logs tracking.")
 
 # Main content
-st.markdown("<h1 class='main-header'>AI Maintenance Tracker</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>AI Medical Imaging Equipment Maintenance Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<h2 class='sub-header'>Ask me about maintenance logs!</h2>", unsafe_allow_html=True)
 
-# Initialize session state for device ID and logs
-if "device_id" not in st.session_state:
-    st.session_state.device_id = None
-if "logs" not in st.session_state:
-    st.session_state.logs = []
+# Initialize session state for chat messages and device logs
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "device_logs" not in st.session_state:
+    st.session_state.device_logs = {}
 
 # Function to get maintenance logs
 def get_maintenance_logs(device_id):
@@ -787,50 +785,77 @@ def get_maintenance_logs(device_id):
         })
     return formatted_logs
 
-# Accept device ID input
-device_id_input = st.text_input("Enter Device ID:", value="", key="device_id_input")
-if device_id_input:
-    # Convert input to int and fetch logs
-    try:
-        st.session_state.device_id = int(device_id_input)
-        st.session_state.logs = get_maintenance_logs(st.session_state.device_id)
-        st.session_state.messages.append({"role": "system", "content": f"Logs fetched for device ID {st.session_state.device_id}."})
-        st.success(f"Logs fetched for Device ID: {st.session_state.device_id}")
-    except ValueError:
-        st.error("Please enter a valid numeric device ID.")
+# Accept user input for device ID
+device_id_input = st.text_input("Enter Device ID:", key="device_id_input")
 
-# Display chat messages from history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+if device_id_input:
+    try:
+        device_id = int(device_id_input)  # Convert to integer
+        # Fetch logs for the device ID
+        logs = get_maintenance_logs(device_id)
+
+        if logs is None:
+            # Inform the user if no logs exist for the device ID
+            st.session_state.messages.append({"role": "assistant", "content": "I couldn't find any maintenance logs for that device."})
+        else:
+            st.session_state.device_logs[device_id] = logs  # Store logs in session state
+            st.session_state.messages.append({"role": "assistant", "content": f"Got it! You can ask me about the maintenance logs for Device ID {device_id}."})
+        
+        # Display the chat messages from history
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+    except ValueError:
+        st.session_state.messages.append({"role": "assistant", "content": "Please enter a valid numeric Device ID."})
 
 # Accept user questions
 if prompt := st.chat_input("What would you like to know?"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
+
     # Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Check for specific commands
-    if "show me the logs" in prompt.lower() and st.session_state.logs:
-        with st.chat_message("assistant"):
-            logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in st.session_state.logs])
-            st.markdown(f"Here are the maintenance logs for device ID {st.session_state.device_id}:\n{logs_summary}")
-        st.session_state.messages.append({"role": "assistant", "content": f"Here are the maintenance logs for device ID {st.session_state.device_id}:\n{logs_summary}"})
-    else:
-        # Prepare messages for AI call
-        messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
+    # Respond based on the user's question
+    device_id = list(st.session_state.device_logs.keys())[-1] if st.session_state.device_logs else None  # Get the latest device ID from logs
 
-        # Call the AI assistant
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=messages
-        )
-        
-        # Display assistant response
-        full_response = response.choices[0].message.content.strip()
-        with st.chat_message("assistant"):
-            st.markdown(full_response)
-        # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+    if device_id is not None:
+        response = ask_ai_assistant(prompt, st.session_state.device_logs[device_id], device_id)
+    else:
+        response = "I need a device ID first to answer your questions about the logs."
+
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.markdown(response)
+
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
+# Functions to interact with the smart contract and AI
+def get_maintenance_logs(device_id):
+    # Fetch logs from the smart contract (replace with your actual logic)
+    logs = maintenance_contract.functions.getMaintenanceLogs(device_id).call()  # Example function call
+    # Process logs and return them
+    return logs if logs else None
+
+def ask_ai_assistant(question, logs, device_id):
+    if not logs or all(log['timestamp'] == 0 for log in logs):  # Check if logs are empty or invalid
+        return "The maintenance logs for this device ID seem incomplete or invalid."
+
+    # Prepare the message context for the AI
+    logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in logs])
+    messages = [
+        {"role": "system", "content": "You are an AI assistant for maintenance accountability and tracking."},
+        {"role": "user", "content": f"Maintenance logs for device ID {device_id}:\n{logs_summary}\n\n{question}"}
+    ]
+
+    # Call the OpenAI API
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=messages
+    )
+
+    # Return the AI's response
+    return response.choices[0].message.content
