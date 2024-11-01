@@ -781,7 +781,7 @@ question = st.text_area("What would you like to ask the AI assistant about the m
 if st.button("Ask AI"):
     if device_id and question:
         # Fetch logs for the given device_id
-        logs = getMaintenanceLogs(device_id)  # Replace this with your logic to get logs based on device_id
+        logs = get_maintenance_logs(device_id)  # Replace this with your logic to get logs based on device_id
         answer = ask_ai_assistant(question, logs, device_id)
         st.write("### AI Response:")
         st.write(answer)
