@@ -775,15 +775,28 @@ def ask_ai_assistant(question, logs, device_id):
 
 # Streamlit UI
 st.title("Maintenance Tracking AI Assistant")
-device_id = st.text_input("Enter Device ID:")
-question = st.text_area("What would you like to ask the AI assistant about the maintenance logs?")
 
-if st.button("Ask AI"):
-    if device_id and question:
-        # Fetch logs for the given device_id
-        logs = get_maintenance_logs(device_id)  # Replace this with your logic to get logs based on device_id
-        answer = ask_ai_assistant(question, logs, device_id)
-        st.write("### AI Response:")
-        st.write(answer)
-    else:
-        st.error("Please provide both a device ID and a question.")
+device_id_input = st.text_input("Enter Device ID:")
+
+if device_id_input:
+    try:
+        device_id = int(device_id_input)
+        
+        # Fetch logs
+        logs = get_maintenance_logs(device_id)
+        
+        if logs is None:
+            st.warning("No logs found for this device ID.")
+        else:
+            st.subheader("Logs")
+            for log in logs:
+                st.write(log)
+
+            question = st.text_input("Ask your question about the maintenance logs:")
+            if question:
+                response = ask_ai_assistant(question, logs, device_id)
+                st.subheader("AI Response")
+                st.write(response)
+                
+    except ValueError:
+        st.error("Please enter a numeric device ID.")
