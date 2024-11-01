@@ -3,16 +3,10 @@ import json
 import streamlit as st
 from web3 import Web3
 from openai import OpenAI
-from dotenv import load_dotenv,dotenv_values
-
-# Load environment variables
-load_dotenv()
 
 # Access the OpenAI API key from the environment variable
-#API_KEY =os.getenv("API_KEY")
 API_KEY = st.secrets["API_KEY"]
 
-#client = OpenAI(api_key=API_KEY)
 if API_KEY is None:
     st.error("API key not found. Please check your .env file.")
 else:
