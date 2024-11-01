@@ -757,7 +757,6 @@ with st.sidebar:
 st.markdown("<h1 class='main-header'>AI Medical Imaging Equipment Maintenance Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<h2 class='sub-header'>Ask me about maintenance logs!</h2>", unsafe_allow_html=True)
 
-# Initialize session state for chat messages and device logs
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "device_logs" not in st.session_state:
@@ -799,14 +798,14 @@ if device_id_input:
             st.session_state.messages.append({"role": "assistant", "content": "I couldn't find any maintenance logs for that device."})
         else:
             st.session_state.device_logs[device_id] = logs  # Store logs in session state
-        
-        # Display the chat messages from history
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
 
     except ValueError:
         st.session_state.messages.append({"role": "assistant", "content": "Please enter a valid numeric Device ID."})
+
+# Display the chat messages from history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 # Accept user questions
 if prompt := st.chat_input("What would you like to know?"):
@@ -817,10 +816,11 @@ if prompt := st.chat_input("What would you like to know?"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Check if there are any device logs available
-    device_id = list(st.session_state.device_logs.keys())[-1] if st.session_state.device_logs else None  # Get the latest device ID from logs
-
-    if device_id is not None:
+    # Check if any device logs are available
+    device_ids = list(st.session_state.device_logs.keys())
+    
+    if device_ids:  # Ensure there is at least one device ID in the logs
+        device_id = device_ids[-1]  # Get the latest device ID from logs
         response = ask_ai_assistant(prompt, st.session_state.device_logs[device_id], device_id)
     else:
         response = "I need a device ID first to answer your questions about the logs."
