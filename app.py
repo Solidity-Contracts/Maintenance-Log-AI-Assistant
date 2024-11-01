@@ -834,12 +834,6 @@ if prompt := st.chat_input("What would you like to know?"):
     st.session_state.messages.append({"role": "assistant", "content": response})
 
 # Functions to interact with the smart contract and AI
-def get_maintenance_logs(device_id):
-    # Fetch logs from the smart contract (replace with your actual logic)
-    logs = maintenance_contract.functions.getMaintenanceLogs(device_id).call()  # Example function call
-    # Process logs and return them
-    return logs if logs else None
-
 def ask_ai_assistant(question, logs, device_id):
     if not logs or all(log['timestamp'] == 0 for log in logs):  # Check if logs are empty or invalid
         return "The maintenance logs for this device ID seem incomplete or invalid."
