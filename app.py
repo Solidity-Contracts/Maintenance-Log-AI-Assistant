@@ -799,7 +799,6 @@ if device_id_input:
             st.session_state.messages.append({"role": "assistant", "content": "I couldn't find any maintenance logs for that device."})
         else:
             st.session_state.device_logs[device_id] = logs  # Store logs in session state
-            st.session_state.messages.append({"role": "assistant", "content": f"Got it! You can ask me about the maintenance logs for Device ID {device_id}."})
         
         # Display the chat messages from history
         for message in st.session_state.messages:
@@ -818,7 +817,7 @@ if prompt := st.chat_input("What would you like to know?"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Respond based on the user's question
+    # Check if there are any device logs available
     device_id = list(st.session_state.device_logs.keys())[-1] if st.session_state.device_logs else None  # Get the latest device ID from logs
 
     if device_id is not None:
