@@ -799,9 +799,7 @@ if device_id_input:
         
         if st.session_state.logs is None:
             st.error("No logs found for this device ID. Please enter a valid device ID.")
-        else:
-            st.success(f"Successfully retrieved logs for Device ID: {device_id}")
-
+        
     except ValueError:
         st.error("Please enter a valid numeric Device ID.")
 
