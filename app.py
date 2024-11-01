@@ -829,7 +829,7 @@ if st.session_state.device_id is not None and st.session_state.logs is not None:
 
         # Call the OpenAI API
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=messages
         )
         response_content = response.choices[0].message.content
