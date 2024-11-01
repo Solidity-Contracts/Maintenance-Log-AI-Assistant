@@ -793,7 +793,7 @@ if device_id_input:
     # Convert input to int and fetch logs
     try:
         st.session_state.device_id = int(device_id_input)
-        st.session_state.logs = fetch_logs(st.session_state.device_id)
+        st.session_state.logs = get_maintenance_logs(st.session_state.device_id)
         st.session_state.messages.append({"role": "system", "content": f"Logs fetched for device ID {st.session_state.device_id}."})
         st.success(f"Logs fetched for Device ID: {st.session_state.device_id}")
     except ValueError:
