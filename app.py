@@ -725,24 +725,58 @@ maintenance_contract = web3.eth.contract(address=maintenance_contract_address, a
 device_registration_contract = web3.eth.contract(address=device_registration_contract_address, abi=device_registration_contract_abi)
 stakeholder_registration_contract = web3.eth.contract(address=stakeholder_registration_contract_address, abi=stakeholder_registration_contract_abi)
 
+# Page configuration
+st.set_page_config(page_title="AI Maintenance Tracker", page_icon="🤖", layout="wide")
+
+# Custom CSS for styling
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        color: #4a4a4a;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .sub-header {
+        font-size: 1.5rem;
+        color: #6a6a6a;
+        margin-bottom: 1rem;
+    }
+    .stTextInput>div>div>input {
+        background-color: #f0f2f6;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Initialize OpenAI client
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+# Sidebar
+with st.sidebar:
+    st.header("About")
+    st.write("This is an AI-powered chatbot for maintenance logs tracking.")
+
+# Main content
+st.markdown("<h1 class='main-header'>AI Maintenance Tracker</h1>", unsafe_allow_html=True)
+st.markdown("<h2 class='sub-header'>Ask me about maintenance logs!</h2>", unsafe_allow_html=True)
+
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Function to get maintenance logs
 def get_maintenance_logs(device_id):
-    # Fetch logs from smart contract
     logs = maintenance_contract.functions.getMaintenanceLogs(device_id).call()
-    
     if not logs:
         return None
     
-    # Retrieve stakeholder names based on addresses
     formatted_logs = []
     for log in logs:
         status = log[3]
         status_string = maintenance_contract.functions.getStatusString(status).call()
-        
-        stakeholder_address = log[4]  
+        stakeholder_address = log[4]
         stakeholder_name = stakeholder_registration_contract.functions.getStakeholderName(stakeholder_address).call()
-
         
-        # Append the formatted log with stakeholder name
         formatted_logs.append({
             "deviceId": log[0],
             "timestamp": log[1],
@@ -752,51 +786,50 @@ def get_maintenance_logs(device_id):
         })
     return formatted_logs
 
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-def ask_ai_assistant(question, logs, device_id):
-    if not logs or all(log['timestamp'] == 0 for log in logs):  # Check if logs are empty or all timestamps are 0
-        return "The maintenance logs for this device ID are incomplete or invalid. Please check the device ID or update the logs."
+# Accept user input
+if prompt := st.chat_input("What would you like to know?"):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-# Prepare the message context
-    logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in logs])
-    messages =[
-        {"role": "system", "content": "You are an AI assistant for maintenance accountability and tracking."},
-        {"role": "user", "content": f"Maintenance logs for device ID {device_id}:\n{logs_summary}\n\n{question}"}
-    ]
-
-# Call the OpenAI API
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=messages
-    )
-
-
-    return response['choices'][0]['message']['content'].strip()
-
-# Streamlit UI
-st.title("Maintenance Tracking AI Assistant")
-
-device_id_input = st.text_input("Enter Device ID:")
-
-if device_id_input:
+    # Check for device ID question
+    device_id = None
     try:
-        device_id = int(device_id_input)
-        
-        # Fetch logs
-        logs = get_maintenance_logs(device_id)
-        
-        if logs is None:
-            st.warning("No logs found for this device ID.")
-        else:
-            st.subheader("Logs")
-            for log in logs:
-                st.write(log)
-
-            question = st.text_input("Ask your question about the maintenance logs:")
-            if question:
-                response = ask_ai_assistant(question, logs, device_id)
-                st.subheader("AI Response")
-                st.write(response)
-                
+        device_id = int(prompt)  # Assuming user enters device ID for logs
     except ValueError:
-        st.error("Please enter a numeric device ID.")
+        pass  # If it's not a device ID, we'll handle that later
+
+    # Retrieve logs if a valid device ID is provided
+    if device_id is not None:
+        logs = get_maintenance_logs(device_id)
+        if logs is None:
+            response = "No logs found for this device ID."
+        else:
+            # Prepare the context for AI
+            logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in logs])
+            messages = [
+                {"role": "system", "content": "You are an AI assistant for maintenance accountability and tracking."},
+                {"role": "user", "content": f"Maintenance logs for device ID {device_id}:\n{logs_summary}\n\n{prompt}"}
+            ]
+
+            # Call the OpenAI API
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=messages
+            )
+            response_content = response.choices[0].message.content
+    else:
+        response_content = "Please enter a valid device ID to retrieve logs."
+
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.markdown(response_content)
+    
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response_content})
