@@ -757,9 +757,13 @@ with st.sidebar:
 st.markdown("<h1 class='main-header'>AI Maintenance Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<h2 class='sub-header'>Ask me about maintenance logs!</h2>", unsafe_allow_html=True)
 
-# Initialize chat history
+# Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "device_id" not in st.session_state:
+    st.session_state.device_id = None
+if "logs" not in st.session_state:
+    st.session_state.logs = None
 
 # Function to get maintenance logs
 def get_maintenance_logs(device_id):
