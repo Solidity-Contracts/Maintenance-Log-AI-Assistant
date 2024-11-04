@@ -760,56 +760,58 @@ st.markdown("<h2 class='sub-header'>Ask me about maintenance logs!</h2>", unsafe
 # Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "device_id" not in st.session_state:
-    st.session_state.device_id = None
+if "device_ids" not in st.session_state:
+    st.session_state.device_ids = []  # Store multiple device IDs
 if "logs" not in st.session_state:
-    st.session_state.logs = None
+    st.session_state.logs = {}  # Store logs in a dictionary keyed by device ID
 
-# Function to get maintenance logs
-def get_maintenance_logs(device_id):
-    logs = maintenance_contract.functions.getMaintenanceLogs(device_id).call()
-    if not logs:
-        return None
-    
-    formatted_logs = []
-    for log in logs:
-        status = log[3]
-        status_string = maintenance_contract.functions.getStatusString(status).call()
-        stakeholder_address = log[4]
-        stakeholder_name = stakeholder_registration_contract.functions.getStakeholderName(stakeholder_address).call()
-        
-        formatted_logs.append({
-            "deviceId": log[0],
-            "timestamp": log[1],
-            "description": log[2],
-            "status": status_string or "Unknown",
-            "stakeholder": stakeholder_name or "Unknown"
-        })
-    return formatted_logs
+# Function to get maintenance logs for multiple devices
+def get_maintenance_logs(device_ids):
+    all_logs = {}
+    for device_id in device_ids:
+        logs = maintenance_contract.functions.getMaintenanceLogs(device_id).call()
+        if logs:
+            formatted_logs = []
+            for log in logs:
+                status = log[3]
+                status_string = maintenance_contract.functions.getStatusString(status).call()
+                stakeholder_address = log[4]
+                stakeholder_name = stakeholder_registration_contract.functions.getStakeholderName(stakeholder_address).call()
+                
+                formatted_logs.append({
+                    "deviceId": log[0],
+                    "timestamp": log[1],
+                    "description": log[2],
+                    "status": status_string or "Unknown",
+                    "stakeholder": stakeholder_name or "Unknown"
+                })
+            all_logs[device_id] = formatted_logs
+    return all_logs
 
-# Input for Device ID
-device_id_input = st.text_input("Enter Device ID", value="", max_chars=10, placeholder="Type and press Enter...")
+# Input for Device IDs (comma-separated)
+device_ids_input = st.text_input("Enter Device IDs (comma-separated)", value="", placeholder="E.g., 1, 2, 3")
 
 # Check for device ID input
-if device_id_input:
+if device_ids_input:
     try:
-        device_id = int(device_id_input)
-        st.session_state.device_id = device_id  # Store device ID in session state
-        st.session_state.logs = get_maintenance_logs(device_id)  # Fetch logs
-        
-        if st.session_state.logs is None:
-            st.error("No logs found for this device ID. Please enter a valid device ID.")
-        
+        # Split input by commas and strip whitespace
+        device_ids = [int(id.strip()) for id in device_ids_input.split(",") if id.strip()]
+        st.session_state.device_ids = device_ids  # Store device IDs in session state
+        st.session_state.logs = get_maintenance_logs(device_ids)  # Fetch logs for selected devices
+
+        if not st.session_state.logs:
+            st.error("No logs found for the selected device IDs. Please enter valid device IDs.")
+    
     except ValueError:
-        st.error("Please enter a valid numeric Device ID.")
+        st.error("Please enter valid numeric Device IDs, separated by commas.")
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Accept user questions only if a valid device ID is set
-if st.session_state.device_id is not None and st.session_state.logs is not None:
+# Accept user questions only if valid device IDs are set
+if st.session_state.device_ids and st.session_state.logs:
     prompt = st.chat_input("What would you like to know about the maintenance logs?")
 
     if prompt:
@@ -818,16 +820,19 @@ if st.session_state.device_id is not None and st.session_state.logs is not None:
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Prepare the context for AI
-        logs_summary = "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in st.session_state.logs])
+        # Prepare the context for AI, including logs from all selected devices
+        logs_summary = ""
+        for device_id, logs in st.session_state.logs.items():
+            logs_summary += f"Device ID {device_id} logs:\n" + "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in logs]) + "\n\n"
+
         messages = [
             {"role": "system", "content": "You are an AI assistant for maintenance accountability and tracking."},
-            {"role": "user", "content": f"Maintenance logs for device ID {st.session_state.device_id}:\n{logs_summary}\n\n{prompt}"}
+            {"role": "user", "content": f"{logs_summary}\n\n{prompt}"}
         ]
 
         # Call the OpenAI API
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=messages
         )
         response_content = response.choices[0].message.content
