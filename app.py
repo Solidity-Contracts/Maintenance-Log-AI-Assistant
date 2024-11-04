@@ -536,6 +536,29 @@ device_registration_contract_abi = json.loads('''[
 
 stakeholder_registration_contract_abi = json.loads('''[
 	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint8",
+				"name": "_stakeholderType",
+				"type": "uint8"
+			},
+			{
+				"internalType": "address",
+				"name": "_stakeholderAddress",
+				"type": "address"
+			}
+		],
+		"name": "registerStakeholder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
@@ -648,29 +671,6 @@ stakeholder_registration_contract_abi = json.loads('''[
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "_name",
-				"type": "string"
-			},
-			{
-				"internalType": "uint8",
-				"name": "_stakeholderType",
-				"type": "uint8"
-			},
-			{
-				"internalType": "address",
-				"name": "_stakeholderAddress",
-				"type": "address"
-			}
-		],
-		"name": "registerStakeholder",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "regulatoryAuthority",
 		"outputs": [
@@ -719,9 +719,9 @@ stakeholder_registration_contract_abi = json.loads('''[
 	}
 ]''')
 
-maintenance_contract_address = "0xE58F10aBD95f60e015aDd54a74e0e825eB1cC39F"
-device_registration_contract_address = "0x9f24a3f698d3410cc75546604b171A25937f03f4"
-stakeholder_registration_contract_address = "0x8D2aeF2822B7740545e729514522E11a4ddFAfCb"
+maintenance_contract_address = "0x919e74A0eA066561A7573083c1ff89FA24F29058"
+device_registration_contract_address = "0xAE7E0A2211ca47c15d8BA97dD5c81Bb9cab50728"
+stakeholder_registration_contract_address = "0x626Fb126D743C7bf7C06A7Ff907Dd6A9c73F420a"
 
 # Create contract instances
 maintenance_contract = web3.eth.contract(address=maintenance_contract_address, abi=maintenance_contract_abi)
