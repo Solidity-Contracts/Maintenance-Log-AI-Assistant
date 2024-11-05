@@ -1,0 +1,78 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "./StakeholderRegistrationContract.sol";
+
+contract DeviceRegistrationContract {
+    StakeholderRegistrationContract stakeholderRegistration;
+
+    struct Device {
+        uint id;                      // Unique ID for the device
+        string name;                 // Name of the device
+        string model;                // Model of the device
+        address manufacturer;         // Address of the device manufacturer
+        uint256 installationDate;
+        uint256 routineCheckupInterval;  // in seconds (e.g., 6 months = 6 * 30 * 24 * 60 * 60)
+        string location;       // Additional info provided by the hospital
+        bool isRegistered;           // Registration status
+    }
+
+    // Mapping of device IDs to Device struct
+    mapping(uint => Device) public devices;
+    uint public deviceCount; // Counter for the number of devices
+
+    modifier onlyDeviceManufacturer() {
+        require(stakeholderRegistration.isDeviceManufacturer(msg.sender), "Caller is not a registered device manufacturer.");
+        _;
+    }
+
+    modifier onlyHospital() {
+        require(stakeholderRegistration.isHospital(msg.sender), "Caller is not a registered hospital.");
+        _;
+    }
+
+    // Event for device registration
+    event DeviceRegistered(
+        uint indexed deviceId,
+        string name,
+        string model,
+        address indexed manufacturer,
+        uint256 installationDate,
+        uint256 routineCheckupInterval, 
+        uint timestamp
+    );
+
+    // Event for providing additional information
+    event AdditionalInfoProvided(
+        uint indexed deviceId,
+        string location,
+        address indexed hospital,
+
+        uint timestamp
+    );
+
+    constructor(address _stakeholderRegistrationAddress) {
+        stakeholderRegistration = StakeholderRegistrationContract(_stakeholderRegistrationAddress);
+    }
+
+    // Function for device manufacturers to register a device
+    function registerDevice(string memory _name, string memory _model, uint256 _installationDate, uint256 _routineCheckupInterval) public onlyDeviceManufacturer {
+        deviceCount++;
+        devices[deviceCount] = Device(deviceCount, _name, _model, msg.sender, _installationDate, _routineCheckupInterval, "", true);
+
+        emit DeviceRegistered(deviceCount, _name, _model, msg.sender, _installationDate, _routineCheckupInterval, block.timestamp);
+    }
+
+    // Function for hospitals to provide additional information for a device
+    function provideAdditionalInfo(uint _deviceId, string memory _location) public onlyHospital {
+        require(devices[_deviceId].isRegistered, "Device not registered.");
+        devices[_deviceId].location = _location;
+
+        emit AdditionalInfoProvided(_deviceId, _location, msg.sender, block.timestamp);
+    }
+
+       function getDevice(uint _deviceId) public view returns (Device memory) {
+        return devices[_deviceId];
+    }
+
+}
