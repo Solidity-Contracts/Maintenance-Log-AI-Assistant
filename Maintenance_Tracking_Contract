@@ -1,0 +1,115 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "./StakeholderRegistrationContract.sol";
+import "./DeviceRegistrationContract.sol";
+
+contract MaintenanceTrackingContract {
+    enum DeviceStatus {Operational, NeedsRepair, Overdue, Emergency}
+
+    struct MaintenanceLog {
+        uint256 machineId;
+        uint256 timestamp;
+        string description;  // Comments or notes from the service provider or hospital
+        DeviceStatus status;  // Use enum for status
+        address stakeholderAddress;
+    }
+
+    mapping(uint256 => MaintenanceLog[]) public maintenanceLogs;
+    StakeholderRegistrationContract stakeholderRegistration;
+    DeviceRegistrationContract deviceRegistration;
+
+    constructor(
+        address _stakeholderRegistrationAddress,
+        address _deviceRegistrationAddress
+    ) {
+        stakeholderRegistration = StakeholderRegistrationContract(_stakeholderRegistrationAddress);
+        deviceRegistration = DeviceRegistrationContract(_deviceRegistrationAddress);
+    }
+
+    modifier onlyServiceProvider() {
+        require(stakeholderRegistration.isMaintenanceServiceProvider(msg.sender), "Not authorized");
+        _;
+    }
+
+    modifier onlyHospital() {
+        require(stakeholderRegistration.isHospital(msg.sender), "Not authorized");
+        _;
+    }
+
+    event MaintenanceRecorded(
+        uint256 machineId,
+        uint256 timestamp,
+        string description,
+        string status, // Status as a string
+        address stakeholderAddress
+    );
+
+    // Routine checkup handled by service provider
+    function periodicCheckup(uint256 _machineId, string memory _description) public onlyServiceProvider {
+        DeviceRegistrationContract.Device memory device = deviceRegistration.getDevice(_machineId);
+        require(device.id != 0, "Invalid device ID");
+
+        uint256 lastMaintenanceTime = device.installationDate;
+
+        if (maintenanceLogs[_machineId].length > 0) {
+            lastMaintenanceTime = maintenanceLogs[_machineId][maintenanceLogs[_machineId].length - 1].timestamp;
+        }
+
+        uint256 nextMaintenanceDue = lastMaintenanceTime + device.routineCheckupInterval;
+
+        // Check if maintenance is overdue
+        if (block.timestamp > nextMaintenanceDue) {
+            logMaintenance(_machineId, _description, DeviceStatus.Overdue);
+        } else {
+            logMaintenance(_machineId, _description, DeviceStatus.Operational);
+        }
+    }
+
+    // Emergency maintenance triggered by the hospital
+    function triggerEmergency(uint256 _machineId, string memory _description) public onlyHospital {
+        logMaintenance(_machineId, _description, DeviceStatus.Emergency);
+    }
+
+    // Call if maintenance cannot be completed due to missing parts
+    function markNeedsRepair(uint256 _machineId, string memory _description) public onlyServiceProvider {
+        logMaintenance(_machineId, _description, DeviceStatus.NeedsRepair);
+    }
+
+    // Mark maintenance as complete (sets status to Operational)
+    function completeMaintenance(uint256 _machineId, string memory _description) public onlyServiceProvider {
+        logMaintenance(_machineId, _description, DeviceStatus.Operational);
+    }
+
+    // Internal function to log maintenance activities
+    function logMaintenance(uint256 _machineId, string memory _description, DeviceStatus _status) internal {
+        MaintenanceLog memory log = MaintenanceLog({
+            machineId: _machineId,
+            timestamp: block.timestamp,
+            description: _description,
+            status: _status,
+            stakeholderAddress: msg.sender
+        });
+        maintenanceLogs[_machineId].push(log);
+
+        emit MaintenanceRecorded(_machineId, block.timestamp, _description, getStatusString(_status),msg.sender);
+    }
+
+    // Helper function to convert enum to string for readability
+    function getStatusString(DeviceStatus _status) public pure returns (string memory) {
+        if (_status == DeviceStatus.Operational) return "Operational";
+        if (_status == DeviceStatus.NeedsRepair) return "Needs Repair";
+        if (_status == DeviceStatus.Overdue) return "Overdue";
+        if (_status == DeviceStatus.Emergency) return "Emergency";
+        return "Unknown";
+    }
+
+    // Retrieve maintenance logs for a specific device
+    function getMaintenanceLogs(uint256 _machineId)
+        public
+        view
+        returns (MaintenanceLog[] memory)
+    {
+        return maintenanceLogs[_machineId];
+    }
+}
