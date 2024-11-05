@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract StakeholderRegistrationContract {
+    address public regulatoryAuthority;
+    
+    // Enum for stakeholder types
+    enum StakeholderType {
+        Hospital,
+        MaintenanceServiceProvider,
+        DeviceManufacturer
+    }
+
+    // Structure to hold stakeholder details
+    struct Stakeholder {
+        string name;
+        StakeholderType stakeholderType;
+        address stakeholderAddress;
+        bool isRegistered;  // Flag to check if the stakeholder is registered
+    }
+
+    // Mapping to hold stakeholders by their address
+    mapping(address => Stakeholder) public stakeholders;
+
+    // Event to emit when a stakeholder is registered
+    event StakeholderRegistered(
+        string name,
+        string stakeholderType,
+        address indexed stakeholderAddress,
+        uint timestamp  // Include timestamp in the event
+    );
+
+    // Modifier to restrict access to regulatory authority
+    modifier onlyRegulatoryAuthority() {
+        require(msg.sender == regulatoryAuthority, "Only regulatory authority can perform this action");
+        _;
+    }
+
+    // Constructor to set the regulatory authority
+    constructor() {
+        regulatoryAuthority = msg.sender;  // Set the deployer as the regulatory authority
+    }
+
+    // Function to register a stakeholder
+    function registerStakeholder(
+        string memory _name,
+        uint8 _stakeholderType,
+        address _stakeholderAddress  // Accept the stakeholder's address as a parameter
+    ) public onlyRegulatoryAuthority {
+        require(_stakeholderType <= uint(StakeholderType.DeviceManufacturer), "Invalid stakeholder type");
+        require(!stakeholders[_stakeholderAddress].isRegistered, "Stakeholder is already registered");
+
+        // Register the stakeholder
+        stakeholders[_stakeholderAddress] = Stakeholder({
+            name: _name,
+            stakeholderType: StakeholderType(_stakeholderType),
+            stakeholderAddress: _stakeholderAddress,
+            isRegistered: true
+        });
+
+        // Emit the event with the correct stakeholder's address
+        emit StakeholderRegistered(
+            _name, 
+            stakeholderTypeToString(StakeholderType(_stakeholderType)), 
+            _stakeholderAddress,  // Emit the stakeholder's address here
+            block.timestamp
+        );
+    }
+
+    // Helper function to convert StakeholderType enum to string
+    function stakeholderTypeToString(StakeholderType _type) internal pure returns (string memory) {
+        if (_type == StakeholderType.Hospital) return "Hospital";
+        if (_type == StakeholderType.MaintenanceServiceProvider) return "Maintenance Service Provider";
+        if (_type == StakeholderType.DeviceManufacturer) return "Device Manufacturer";
+        return "Unknown";
+    }
+
+    // Function to check if an address is a device manufacturer
+    function isDeviceManufacturer(address _address) public view returns (bool) {
+        return stakeholders[_address].isRegistered && stakeholders[_address].stakeholderType == StakeholderType.DeviceManufacturer;
+    }
+
+
+    // Function to check if an address is a hospital
+    function isHospital(address _address) public view returns (bool) {
+        return stakeholders[_address].isRegistered && stakeholders[_address].stakeholderType == StakeholderType.Hospital;
+    }
+
+    function isMaintenanceServiceProvider(address _address) public view returns (bool) {
+        return stakeholders[_address].isRegistered && stakeholders[_address].stakeholderType == StakeholderType.MaintenanceServiceProvider;
+    }
+
+    // Function to get the name of a stakeholder by address
+    function getStakeholderName(address _stakeholderAddress) public view returns (string memory) {
+        require(stakeholders[_stakeholderAddress].isRegistered, "Stakeholder not registered");
+        return stakeholders[_stakeholderAddress].name;
+    }
+
+}
