@@ -826,8 +826,7 @@ if st.session_state.device_ids and st.session_state.logs:
             logs_summary += f"Device ID {device_id} logs:\n" + "\n".join([f"Timestamp: {log['timestamp']}, Status: {log['status']}, Description: {log['description']}, Handled by: {log['stakeholder']}" for log in logs]) + "\n\n"
 
         messages = [
-            {"role": "system", "content": "You are an AI assistant for 
-	    maintenance accountability and tracking."},
+            {"role": "system", "content": "You are an AI assistant for maintenance accountability and tracking."},
             {"role": "user", "content": f"{logs_summary}\n\n{prompt}"}
         ]
 
