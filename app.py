@@ -17,7 +17,7 @@ else:
     client = OpenAI(api_key=API_KEY)
 
 # Set up Web3 connection to Sepolia using Infura
-infura_url = "https://sepolia.infura.io/v3/4aa0e165e1a14e7faf087f9dc54b183b"
+infura_url = "https://sepolia.infura.io"
 web3 = Web3(Web3.HTTPProvider(infura_url))
 
 # Check if connection is successful
