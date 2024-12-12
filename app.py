@@ -18,7 +18,8 @@ else:
 
 # Set up Web3 connection to Sepolia using Infura
 #infura_url = "https://sepolia.infura.io/v3/e150e939c5ef4de7b1be4a013ac9e56b"
-infura_url = "https://mainnet.infura.io/v3/e150e939c5ef4de7b1be4a013ac9e56b"
+#infura_url = "https://mainnet.infura.io/v3/e150e939c5ef4de7b1be4a013ac9e56b"
+infura_url = "https://sepolia.drpc.org"
 web3 = Web3(Web3.HTTPProvider(infura_url))
 
 # Check if connection is successful
